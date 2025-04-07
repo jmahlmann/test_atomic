@@ -14,7 +14,7 @@ __global__ void atomicAdd_int32_kernel(int32_t* counter) {
 }
 
 __global__ void atomicAdd_int64_kernel(int64_t* counter) {
-    atomicAdd((unsigned long long int*)counter, 1ULL);  // HIP requires casting
+    atomicAdd((unsigned long long int*)counter, 1ULL);  
 }
 
 __global__ void atomicAdd_long_kernel(long int* counter) {
