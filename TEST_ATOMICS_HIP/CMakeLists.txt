@@ -10,7 +10,7 @@ find_package(HIP REQUIRED)
 
 # Optional: specify GPU target (e.g., gfx90a, gfx908, gfx1030)
 # Uncomment and modify for your hardware
-set(CMAKE_HIP_ARCHITECTURES "gfx90a")
+# set(CMAKE_HIP_ARCHITECTURES "gfx90a")
 
 # Add the executable
 add_executable(scatter_view scatter_view.cpp)
