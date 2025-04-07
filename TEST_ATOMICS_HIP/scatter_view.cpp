@@ -1,90 +1,63 @@
 #include <hip/hip_runtime.h>
 #include <chrono>
 #include <iostream>
+#include <cstdint>
 
 #define N 1000000
 
-__global__ void atomicAdd_int_kernel(int* counter) {
-    int i = blockDim.x * blockIdx.x + threadIdx.x;
-    if (i < N) {
-        atomicAdd(counter, 1);
-    }
-} 
-
-__global__ void atomicAdd_int32_kernel(int32_t* counter) {
-    int i = blockDim.x * blockIdx.x + threadIdx.x;
-    if (i < N) {
-        atomicAdd(counter, 1);
-    }
+__global__ void atomicAdd_int(int* counter) {
+    atomicAdd(counter, 1);
 }
 
-__global__ void atomicAdd_int64_kernel(int64_t* counter) {
-    int i = blockDim.x * blockIdx.x + threadIdx.x;
-    if (i < N) {
-        atomicAdd(counter, 1LL);
-    }
+__global__ void atomicAdd_int32(std::int32_t* counter) {
+    atomicAdd(counter, 1);
 }
 
-__global__ void atomicAdd_longint_kernel(long int* counter) {
-    int i = blockDim.x * blockIdx.x + threadIdx.x;
-    if (i < N) {
-        atomicAdd((unsigned long long int*)counter, 1ULL); // HIP workaround
-    }
+__global__ void atomicAdd_int64(std::int64_t* counter) {
+    atomicAdd((unsigned long long int*)counter, 1ULL); // HIP workaround
 }
 
-__global__ void atomicAdd_ulonglong_kernel(unsigned long long int* counter) {
-    int i = blockDim.x * blockIdx.x + threadIdx.x;
-    if (i < N) {
-        atomicAdd(counter, 1ULL);
-    }
+__global__ void atomicAdd_long(long int* counter) {
+    atomicAdd((unsigned long long int*)counter, 1ULL); // HIP workaround
 }
 
-__global__ void atomicAdd_double_kernel(double* counter) {
-    int i = blockDim.x * blockIdx.x + threadIdx.x;
-    if (i < N) {
-        atomicAdd(counter, 1.0);
-    }
+__global__ void atomicAdd_ulonglong(unsigned long long int* counter) {
+    atomicAdd(counter, 1ULL);
 }
 
-void run_and_time(void (*kernel)(void*), void* counter, size_t size, const char* label, hipStream_t stream) {
-    hipMemset(counter, 0, size);
+__global__ void atomicAdd_double(double* counter) {
+    atomicAdd(counter, 1.0);
+}
+
+template <typename T, void (*Kernel)(T*)>
+double run_atomic_test(const char* label) {
+    T* d_counter;
+    hipMalloc(&d_counter, sizeof(T));
+    hipMemset(d_counter, 0, sizeof(T));
+
     auto start = std::chrono::high_resolution_clock::now();
 
-    int threads = 256;
-    int blocks = (N + threads - 1) / threads;
-    kernel<<<blocks, threads, 0, stream>>>(counter);
-    hipStreamSynchronize(stream);
+    for (int i = 0; i < N; ++i) {
+        Kernel<<<1,1>>>(d_counter);
+    }
+    hipDeviceSynchronize();
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
+
     std::cout << "Time " << label << ": " << elapsed.count() << "s\n";
+
+    hipFree(d_counter);
+    return elapsed.count();
 }
 
 int main() {
-    hipStream_t stream;
-    hipStreamCreate(&stream);
+    run_atomic_test<int, atomicAdd_int>("Atomic Int");
+    run_atomic_test<std::int32_t, atomicAdd_int32>("Atomic Int32");
+    run_atomic_test<std::int64_t, atomicAdd_int64>("Atomic Int64");
+    run_atomic_test<long int, atomicAdd_long>("Atomic LongInt");
+    run_atomic_test<unsigned long long int, atomicAdd_ulonglong>("Atomic LongLongInt");
+    run_atomic_test<double, atomicAdd_double>("Atomic Double");
 
-    int* d_int; hipMalloc(&d_int, sizeof(int));
-    int32_t* d_int32; hipMalloc(&d_int32, sizeof(int32_t));
-    int64_t* d_int64; hipMalloc(&d_int64, sizeof(int64_t));
-    long int* d_long; hipMalloc(&d_long, sizeof(long int));
-    unsigned long long int* d_ull; hipMalloc(&d_ull, sizeof(unsigned long long int));
-    double* d_double; hipMalloc(&d_double, sizeof(double));
-
-    run_and_time((void (*)(void*))atomicAdd_int_kernel, d_int, sizeof(int), "Atomic Int", stream);
-    run_and_time((void (*)(void*))atomicAdd_int32_kernel, d_int32, sizeof(int32_t), "Atomic Int32", stream);
-    run_and_time((void (*)(void*))atomicAdd_int64_kernel, d_int64, sizeof(int64_t), "Atomic Int64", stream);
-    run_and_time((void (*)(void*))atomicAdd_longint_kernel, d_long, sizeof(long int), "Atomic LongInt", stream);
-    run_and_time((void (*)(void*))atomicAdd_ulonglong_kernel, d_ull, sizeof(unsigned long long int), "Atomic LongLongInt", stream);
-    run_and_time((void (*)(void*))atomicAdd_double_kernel, d_double, sizeof(double), "Atomic Double", stream);
-
-    hipFree(d_int);
-    hipFree(d_int32);
-    hipFree(d_int64);
-    hipFree(d_long);
-    hipFree(d_ull);
-    hipFree(d_double);
-
-    hipStreamDestroy(stream);
     return 0;
 }
