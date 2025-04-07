@@ -5,32 +5,54 @@
 
 #define N 1000000
 
+// Updated kernels with multiple threads per block
 __global__ void atomicAdd_int_kernel(int* counter) {
-    atomicAdd(counter, 1);
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < N) {
+        atomicAdd(counter, 1);
+    }
 }
 
 __global__ void atomicAdd_int32_kernel(int32_t* counter) {
-    atomicAdd(counter, 1);
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < N) {
+        atomicAdd(counter, 1);
+    }
 }
 
 __global__ void atomicAdd_int64_kernel(int64_t* counter) {
-    atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);  
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < N) {
+        atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);
+    }
 }
 
 __global__ void atomicAdd_long_kernel(long int* counter) {
-    atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < N) {
+        atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);
+    }
 }
 
 __global__ void atomicAdd_ulonglong_kernel(unsigned long long int* counter) {
-    atomicAdd(counter, 1ULL);
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < N) {
+        atomicAdd(counter, 1ULL);
+    }
 }
 
 __global__ void atomicAdd_double_kernel(double* counter) {
-    atomicAdd(counter, 1.0);
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < N) {
+        atomicAdd(counter, 1.0);
+    }
 }
 
 __global__ void atomicAdd_size_t_kernel(size_t* counter) {
-    atomicAdd(reinterpret_cast<size_t*>(counter), 1ULL);
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if (idx < N) {
+        atomicAdd(reinterpret_cast<size_t*>(counter), 1ULL);
+    }
 }
 
 template <typename T>
@@ -44,11 +66,13 @@ double run_atomic(const char* label) {
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    for (int i = 0; i < N; ++i) {
-        kernel<<<1, 1>>>(d_counter);
-    }
+    // Launch a single kernel with enough threads to cover N operations
+    int block_size = 256;  // Number of threads per block
+    int num_blocks = (N + block_size - 1) / block_size;  // Total blocks required to cover N
 
-    hipDeviceSynchronize();
+    kernel<<<num_blocks, block_size>>>(d_counter);
+
+    hipDeviceSynchronize();  // Wait for the kernel to finish
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
