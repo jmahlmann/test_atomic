@@ -5,53 +5,53 @@
 
 #define N 1000000
 
-// Updated kernels with multiple threads per block
-__global__ void atomicAdd_int_kernel(int* counter) {
+// Updated kernels with multiple threads per block, fetching the previous value
+__global__ void atomicFetchAdd_int_kernel(int* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        atomicAdd(counter, 1);
+        int prev_val = atomicAdd(counter, 1);  // atomicFetchAdd equivalent
     }
 }
 
-__global__ void atomicAdd_int32_kernel(int32_t* counter) {
+__global__ void atomicFetchAdd_int32_kernel(int32_t* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        atomicAdd(counter, 1);
+        int32_t prev_val = atomicAdd(counter, 1);  // atomicFetchAdd equivalent
     }
 }
 
-__global__ void atomicAdd_int64_kernel(int64_t* counter) {
+__global__ void atomicFetchAdd_int64_kernel(int64_t* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);
+        int64_t prev_val = atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);  // atomicFetchAdd equivalent
     }
 }
 
-__global__ void atomicAdd_long_kernel(long int* counter) {
+__global__ void atomicFetchAdd_long_kernel(long int* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);
+        long int prev_val = atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);  // atomicFetchAdd equivalent
     }
 }
 
-__global__ void atomicAdd_ulonglong_kernel(unsigned long long int* counter) {
+__global__ void atomicFetchAdd_ulonglong_kernel(unsigned long long int* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        atomicAdd(counter, 1ULL);
+        unsigned long long int prev_val = atomicAdd(counter, 1ULL);  // atomicFetchAdd equivalent
     }
 }
 
-__global__ void atomicAdd_double_kernel(double* counter) {
+__global__ void atomicFetchAdd_double_kernel(double* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        atomicAdd(counter, 1.0);
+        double prev_val = atomicAdd(counter, 1.0);  // atomicFetchAdd equivalent
     }
 }
 
-__global__ void atomicAdd_size_t_kernel(size_t* counter) {
+__global__ void atomicFetchAdd_size_t_kernel(size_t* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        atomicAdd(reinterpret_cast<size_t*>(counter), 1ULL);
+        size_t prev_val = atomicAdd(reinterpret_cast<size_t*>(counter), 1ULL);  // atomicFetchAdd equivalent
     }
 }
 
@@ -84,13 +84,13 @@ double run_atomic(const char* label) {
 }
 
 int main() {
-    run_atomic<int, atomicAdd_int_kernel>("Atomic Int");
-    run_atomic<int32_t, atomicAdd_int32_kernel>("Atomic Int32");
-    run_atomic<int64_t, atomicAdd_int64_kernel>("Atomic Int64");
-    run_atomic<long int, atomicAdd_long_kernel>("Atomic LongInt");
-    run_atomic<unsigned long long int, atomicAdd_ulonglong_kernel>("Atomic LongLongInt");
-    run_atomic<size_t, atomicAdd_size_t_kernel>("Atomic SizeT");
-    run_atomic<double, atomicAdd_double_kernel>("Atomic Double");
+    run_atomic<int, atomicFetchAdd_int_kernel>("Atomic Int");
+    run_atomic<int32_t, atomicFetchAdd_int32_kernel>("Atomic Int32");
+    run_atomic<int64_t, atomicFetchAdd_int64_kernel>("Atomic Int64");
+    run_atomic<long int, atomicFetchAdd_long_kernel>("Atomic LongInt");
+    run_atomic<unsigned long long int, atomicFetchAdd_ulonglong_kernel>("Atomic LongLongInt");
+    run_atomic<size_t, atomicFetchAdd_size_t_kernel>("Atomic SizeT");
+    run_atomic<double, atomicFetchAdd_double_kernel>("Atomic Double");
 
     return 0;
 }
