@@ -14,11 +14,11 @@ __global__ void atomicAdd_int32_kernel(int32_t* counter) {
 }
 
 __global__ void atomicAdd_int64_kernel(int64_t* counter) {
-    atomicAdd((unsigned long long int*)counter, 1ULL);  
+    atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);  
 }
 
 __global__ void atomicAdd_long_kernel(long int* counter) {
-    atomicAdd((unsigned long long int*)counter, 1ULL);
+    atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);
 }
 
 __global__ void atomicAdd_ulonglong_kernel(unsigned long long int* counter) {
@@ -27,6 +27,10 @@ __global__ void atomicAdd_ulonglong_kernel(unsigned long long int* counter) {
 
 __global__ void atomicAdd_double_kernel(double* counter) {
     atomicAdd(counter, 1.0);
+}
+
+__global__ void atomicAdd_size_t_kernel(size_t* counter) {
+    atomicAdd(reinterpret_cast<size_t*>(counter), 1ULL);
 }
 
 template <typename T>
@@ -61,6 +65,7 @@ int main() {
     run_atomic<int64_t, atomicAdd_int64_kernel>("Atomic Int64");
     run_atomic<long int, atomicAdd_long_kernel>("Atomic LongInt");
     run_atomic<unsigned long long int, atomicAdd_ulonglong_kernel>("Atomic LongLongInt");
+    run_atomic<size_t, atomicAdd_size_t_kernel>("Atomic SizeT");
     run_atomic<double, atomicAdd_double_kernel>("Atomic Double");
 
     return 0;
