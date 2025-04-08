@@ -18,8 +18,9 @@ double atomic_add_loop(const char* label) {
     Kokkos::fence();
     double elapsed = timer.seconds();
 
-    T result;
-    Kokkos::deep_copy(result, counter);
+    auto host_counter = Kokkos::create_mirror_view(counter);
+    Kokkos::deep_copy(host_counter, counter);
+    T result = host_counter(0);
 
     std::cout << "Time " << label << ": " << elapsed << "s\n";
     std::cout << "Result for " << label << ": " << result;
