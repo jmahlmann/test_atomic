@@ -65,15 +65,6 @@ __global__ void atomicAdd_double_kernel(double *counter)
     }
 }
 
-// CUDA kernel for atomicAdd with size_t
-__global__ void atomicAdd_size_t_kernel(size_t *counter)
-{
-    int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    if (idx < N)
-    {
-        atomicAdd(reinterpret_cast<size_t *>(counter), 1ULL);
-    }
-}
 
 // Template function to run atomic test
 template <typename T, void (*kernel)(T *)> double run_atomic(const char *label)
@@ -107,7 +98,6 @@ int main()
     run_atomic<int64_t, atomicAdd_int64_kernel>("Atomic Int64");
     run_atomic<long int, atomicAdd_long_kernel>("Atomic LongInt");
     run_atomic<unsigned long long int, atomicAdd_ulonglong_kernel>("Atomic LongLongInt");
-    run_atomic<size_t, atomicAdd_size_t_kernel>("Atomic SizeT");
     run_atomic<double, atomicAdd_double_kernel>("Atomic Double");
 
     return 0;
