@@ -1,3 +1,9 @@
+# Define the minimum required CMake version
+cmake_minimum_required(VERSION 3.16)
+
+# Define the project name and version
+project(HIPTutorialScatterView VERSION 1.0 LANGUAGES CXX HIP)
+
 # Get ROCm CMake Helpers onto your CMake Module Path
 enable_language(HIP)
 
@@ -36,9 +42,7 @@ target_link_libraries(scatterview PRIVATE
 
 # If you want to specify the target architecture for GPU, you can set flags
 # Adjust the `--amdgpu-target=gfx900` flag as needed for your GPU architecture
-# if (CMAKE_CXX_COMPILER_ID STREQUAL "HIP")
 target_compile_options(scatterview PRIVATE --amdgpu-target=gfx900)  # Example for gfx900, change to your GPU architecture
-# endif()
 
 # Ensure to use the HIP compiler (hipcc)
 set(CMAKE_CXX_COMPILER ${HIP_HIPCC_EXECUTABLE})
