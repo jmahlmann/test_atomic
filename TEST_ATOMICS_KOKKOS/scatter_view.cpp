@@ -27,8 +27,8 @@ int main(int argc, char* argv[]) {
         atomic_add_loop<int64_t>("Atomic Int64");
         atomic_add_loop<long int>("Atomic LongInt");
         atomic_add_loop<unsigned long long int>("Atomic LongLongInt");
-        atomic_add_loop<double>("Atomic Double");
         atomic_add_loop<size_t>("Atomic SizeT");
+        atomic_add_loop<double>("Atomic Double");
     }
     Kokkos::finalize();
     return 0;
