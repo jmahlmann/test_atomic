@@ -42,7 +42,7 @@ target_link_libraries(scatterview PRIVATE
 
 # If you want to specify the target architecture for GPU, you can set flags
 # Adjust the `--amdgpu-target=gfx900` flag as needed for your GPU architecture
-target_compile_options(scatterview PRIVATE --amdgpu-target=gfx900)  # Example for gfx900, change to your GPU architecture
+# target_compile_options(scatterview PRIVATE --amdgpu-target=gfx900)  # Example for gfx900, change to your GPU architecture
 
 # Ensure to use the HIP compiler (hipcc)
 set(CMAKE_CXX_COMPILER ${HIP_HIPCC_EXECUTABLE})
