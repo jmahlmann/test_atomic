@@ -1,24 +1,47 @@
-cmake_minimum_required(VERSION 3.16)
+# Get ROCm CMake Helpers onto your CMake Module Path
+enable_language(HIP)
 
-# Define the project name
-project(HIPTutorialScatterView)
+# Check if ROCM_PATH is set, either from the environment or from a cached path
+if (NOT DEFINED ROCM_PATH)
+  if (NOT DEFINED ENV{ROCM_PATH})
+    set(ROCM_PATH "/opt/rocm" CACHE PATH "ROCm path")
+  else()
+    set(ROCM_PATH $ENV{ROCM_PATH} CACHE PATH "ROCm path")
+  endif()
+endif()
 
-# Find the HIP package (ensure you have HIP installed and the environment variables are set)
+# Add ROCm CMake module path
+set(CMAKE_MODULE_PATH "${ROCM_PATH}/lib/cmake" ${CMAKE_MODULE_PATH})
+
+# Find the required HIP components
 find_package(HIP REQUIRED)
 
-# Add the executable for the project
-add_executable(scatterview scatter_view.cpp)
+# If necessary, you can also link other libraries like hipfft, hiprand, rocrand, etc.
+# Here we're just linking with HIP
+find_package(rocprim REQUIRED)
 
-# Link the HIP device library for the executable
-target_link_libraries(scatterview HIP::device)
+# Define your source files here (replace with actual source files for your program)
+set(MY_HIP_SRCS scatter_view.cpp)  # Include your actual source file(s)
 
-# Set necessary compile options for HIP (optional, based on your needs)
-# target_compile_options(scatterview PRIVATE -O3)  # Optimizations (optional)
+# Mark source files as HIP code
+set_source_files_properties(${MY_HIP_SRCS} PROPERTIES LANGUAGE HIP)
 
-# If needed, specify the target architecture for your GPU (adjust according to your specific GPU)
+# Add the executable that will use HIP
+add_executable(scatterview ${MY_HIP_SRCS})
+
+# Link necessary libraries
+target_link_libraries(scatterview PRIVATE
+  roc::rocprim_hip
+)
+
+# If you want to specify the target architecture for GPU, you can set flags
+# Adjust the `--amdgpu-target=gfx900` flag as needed for your GPU architecture
 # if (CMAKE_CXX_COMPILER_ID STREQUAL "HIP")
-target_compile_options(scatterview PRIVATE --amdgpu-target=gfx900)  # Adjust based on your GPU architecture
+target_compile_options(scatterview PRIVATE --amdgpu-target=gfx900)  # Example for gfx900, change to your GPU architecture
 # endif()
 
-# Make sure to use the HIP compiler (hipcc)
+# Ensure to use the HIP compiler (hipcc)
 set(CMAKE_CXX_COMPILER ${HIP_HIPCC_EXECUTABLE})
+
+# Set other compilation options if necessary
+# target_compile_options(scatterview PRIVATE -O3)  # For optimizations (optional)
