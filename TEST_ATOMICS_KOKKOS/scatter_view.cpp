@@ -25,8 +25,8 @@ int main(int argc, char* argv[]) {
         atomic_add_loop<int>("Atomic Int");
         atomic_add_loop<int32_t>("Atomic Int32");
         atomic_add_loop<int64_t>("Atomic Int64");
-        atomic_add_loop<long int>("Atomic Long Int");
-        atomic_add_loop<unsigned long long int>("Atomic ULong Long Int");
+        atomic_add_loop<long int>("Atomic LongInt");
+        atomic_add_loop<unsigned long long int>("Atomic LongLongInt");
         atomic_add_loop<double>("Atomic Double");
         atomic_add_loop<size_t>("Atomic SizeT");
     }
