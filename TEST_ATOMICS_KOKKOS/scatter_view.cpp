@@ -14,7 +14,7 @@ double atomic_add_loop(const char* label) {
     });
     
     Kokkos::fence();
-    std::cout << "Time for " << label << ": " << timer.seconds() << "s\n";
+    std::cout << "Time " << label << ": " << timer.seconds() << "s\n";
     return timer.seconds();
 }
 
