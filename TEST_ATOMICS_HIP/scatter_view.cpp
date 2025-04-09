@@ -5,53 +5,53 @@
 
 #define N 1000000
 
-// Updated kernels with multiple threads per block, fetching the previous value
+// Atomic kernels
 __global__ void atomicFetchAdd_int_kernel(int* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        int prev_val = atomicAdd(counter, 1);  // atomicFetchAdd equivalent
+        int prev_val = atomicAdd(counter, 1);
     }
 }
 
 __global__ void atomicFetchAdd_int32_kernel(int32_t* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        int32_t prev_val = atomicAdd(counter, 1);  // atomicFetchAdd equivalent
+        int32_t prev_val = atomicAdd(counter, 1);
     }
 }
 
 __global__ void atomicFetchAdd_int64_kernel(int64_t* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        int64_t prev_val = atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);  // atomicFetchAdd equivalent
+        int64_t prev_val = atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);
     }
 }
 
 __global__ void atomicFetchAdd_long_kernel(long int* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        long int prev_val = atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);  // atomicFetchAdd equivalent
+        long int prev_val = atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);
     }
 }
 
 __global__ void atomicFetchAdd_ulonglong_kernel(unsigned long long int* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        unsigned long long int prev_val = atomicAdd(counter, 1ULL);  // atomicFetchAdd equivalent
+        unsigned long long int prev_val = atomicAdd(counter, 1ULL);
     }
 }
 
 __global__ void atomicFetchAdd_double_kernel(double* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        double prev_val = atomicAdd(counter, 1.0);  // atomicFetchAdd equivalent
+        double prev_val = atomicAdd(counter, 1.0);
     }
 }
 
 __global__ void atomicFetchAdd_size_t_kernel(size_t* counter) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if (idx < N) {
-        size_t prev_val = atomicAdd(reinterpret_cast<size_t*>(counter), 1ULL);  // atomicFetchAdd equivalent
+        size_t prev_val = atomicAdd(reinterpret_cast<unsigned long long int*>(counter), 1ULL);
     }
 }
 
@@ -61,25 +61,28 @@ using KernelFunc = void (*)(T*);
 template <typename T, KernelFunc<T> kernel>
 double run_atomic(const char* label) {
     T* d_counter;
+    T h_counter = 0;
+
     hipMalloc(&d_counter, sizeof(T));
     hipMemset(d_counter, 0, sizeof(T));
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    // Launch a single kernel with enough threads to cover N operations
-    int block_size = 256;  // Number of threads per block
-    int num_blocks = (N + block_size - 1) / block_size;  // Total blocks required to cover N
+    int block_size = 256;
+    int num_blocks = (N + block_size - 1) / block_size;
 
     kernel<<<num_blocks, block_size>>>(d_counter);
-
-    hipDeviceSynchronize();  // Wait for the kernel to finish
+    hipDeviceSynchronize();
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<double> elapsed = end - start;
 
-    std::cout << "Time " << label << ": " << elapsed.count() << "s\n";
-
+    hipMemcpy(&h_counter, d_counter, sizeof(T), hipMemcpyDeviceToHost);
     hipFree(d_counter);
+
+    std::cout << "Time " << label << ": " << elapsed.count() << "s\n";
+    std::cout << "Result for " << label << ": " << h_counter << " [" << (h_counter == static_cast<T>(N) ? "PASS" : "FAIL") << "]\n\n";
+
     return elapsed.count();
 }
 
