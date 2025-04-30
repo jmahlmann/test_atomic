@@ -40,6 +40,7 @@ int main(int argc, char* argv[]) {
         atomic_add_loop<long int>("Atomic LongInt");
         atomic_add_loop<unsigned long long int>("Atomic LongLongInt");
         atomic_add_loop<size_t>("Atomic SizeT");
+        atomic_add_loop<float>("Atomic Float");
         atomic_add_loop<double>("Atomic Double");
     }
     Kokkos::finalize();
